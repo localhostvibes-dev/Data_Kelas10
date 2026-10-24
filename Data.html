@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Query SQL - Siswa MPLS</title>
-    <!-- Library SQL Browser Resmi & Paling Stabil -->
-    <script src="https://jsdelivr.net"></script>
+    <title>Console Query SQL - Data Siswa MPLS</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -58,15 +56,15 @@
     
     <div class="info-box">
         <strong>Nama Tabel:</strong> <code>siswa_mpls</code> | 
-        <strong>Kolom:</strong> <code>Nomer</code>, <code>nama_siswa</code>, <code>nama_panggilan</code>, <code>kelas</code>
+        <strong>Kolom Database:</strong> <code>Nomer</code>, <code>nama_siswa</code>, <code>nama_panggilan</code>, <code>kelas</code>
     </div>
 
     <!-- Area Input Perintah SQL -->
     <div class="query-section">
-        <label for="sqlQuery">Masukkan Perintah / Pencarian SQL Anda:</label>
+        <label for="sqlQuery">Masukkan Perintah SQL / Pencarian Anda:</label>
         <div class="input-container">
             <input type="text" id="sqlQuery" value="SELECT * FROM siswa_mpls WHERE kelas = 'MP'">
-            <button onclick="jalankanQuery()">Jalankan SQL</button>
+            <button onclick="jalankanQueryEngine()">Jalankan SQL</button>
         </div>
         <div id="errorBox" class="error-message"></div>
     </div>
@@ -76,131 +74,108 @@
         <div class="row-count" id="jumlahData">Menampilkan: 0 baris</div>
     </div>
 
-    <!-- Tabel Output -->
+    <!-- Tabel Hasil Output -->
     <table id="tabelHasil">
-        <thead id="tabelHead">
-            <!-- Kolom otomatis dibuat sesuai query -->
-        </thead>
-        <tbody id="tabelBody">
-            <!-- Data siswa otomatis muncul disini -->
-        </tbody>
+        <thead id="tabelHead"></thead>
+        <tbody id="tabelBody"></tbody>
     </table>
 </div>
 
 <script>
-    // 1. MEMBUAT DATABASE DI BROWSER
-    alasql("CREATE TABLE siswa_mpls (Nomer INT PRIMARY KEY, nama_siswa STRING, nama_panggilan STRING, kelas STRING)");
-
-    // 2. INPUT DATA AWAL (Tanda petik satu yang bikin eror sebelumnya sudah dibersihkan)
-    const dataAwal = [
-        [1, "Adinda Calisya Putri", "Calisya atau Kall", "MP"],
-        [2, "Aira Melani Putri", "Aira", "MP"],
-        [3, "Alfiyatun Nur Nafizah", "Nefia", "MP"],
-        [4, "Anissa Nur Febrianti", "Nisa", "MP"],
-        [5, "Annisa Khoirotul Umma", "Asa", "MP"],
-        [6, "Artika sandy ardianty", "Sandy", "MP"],
-        [7, "Aurellia Kinar Trixy P", "Aurel", "MP"],
-        [8, "Aurillia devitasari", "Devita", "MP"],
-        [9, "Aurillia devitasari", "Ara cilung", "MP"],
-        [10, "Berliana d.s", "Berliana", "MP"],
-        [11, "Devi al karoni", "Devi/Depik", "MP"],
-        [12, "Eka dwi wardani", "Eka", "MP"],
-        [13, "Asti Galuh Rahajeng", "Ajeng", "MP"],
-        [14, "Elsa Divia M", "Elsa", "MP"],
-        [15, "Febriana attalya Z", "Ayara", "MP"],
-        [16, "Intan dwi M", "Intan", "MP"],
-        [17, "Juanita Dwi P", "Nita", "MP"],
-        [18, "Kaiva muniroh", "Kaiva", "MP"],
-        [19, "Kirani Adelia S", "Kirani", "MP"],
-        [20, "Lyla auliya", "Lala", "MP"],
-        [21, "Madinah alianisa", "Nisa", "MP"],
-        [22, "Maicha Risqina Wijayanti", "Qina/Maicha", "MP"],
-        [23, "Mey Rinda Rahmatullah S", "Rinda", "MP"],
-        [24, "Nafilah aliya S", "Nafilah", "MP"],
-        [25, "Nasywa fudina N.I", "Naswa", "MP"],
-        [26, "Natalie omega putri L", "Natalie", "MP"],
-        [27, "Nayla izma aura", "Ella", "MP"],
-        [28, "Nur aini syafiyah", "Aini", "MP"],
-        [29, "Putri Hanifah sekar D", "Hanifah", "MP"],
-        [30, "Rachel Evangeline R", "Acel", "MP"],
-        [31, "Rachma Laila M", "Laila", "MP"],
-        [32, "Riska nur r", "Riska", "MP"],
-        [33, "Salsabilla aura dewi", "Salsa", "MP"],
-        [34, "Septiyasa antonio", "Aca", "MP"],
-        [35, "Septya Putri Adilla", "Septya", "MP"],
-        [36, "Shafira amalia p.w", "Feyy", "MP"],
-        [37, "Sifatul Asmawati", "Syif", "MP"],
-        [38, "Tefrisia kanasybila gunawan", "Bila", "MP"],
-        [39, "Zafina putri ramadhani", "Zafina", "MP"],
-        [40, "Zaqonita lovisti f", "Tata", "MP"]
+    // Database Internal Siswa (Hardcoded & Aman dari Konflik Tanda Petik)
+    const databaseSiswa = [
+        { Nomer: 1, nama_siswa: "Adinda Calisya Putri", nama_panggilan: "Calisya atau Kall", kelas: "MP" },
+        { Nomer: 2, nama_siswa: "Aira Melani Putri", nama_panggilan: "Aira", kelas: "MP" },
+        { Nomer: 3, nama_siswa: "Alfiyatun Nur Nafizah", nama_panggilan: "Nefia", kelas: "MP" },
+        { Nomer: 4, nama_siswa: "Anissa Nur Febrianti", nama_panggilan: "Nisa", kelas: "MP" },
+        { Nomer: 5, nama_siswa: "Annisa Khoirotul Umma", nama_panggilan: "Asa", kelas: "MP" },
+        { Nomer: 6, nama_siswa: "Artika sandy ardianty", nama_panggilan: "Sandy", kelas: "MP" },
+        { Nomer: 7, nama_siswa: "Aurellia Kinar Trixy P", nama_panggilan: "Aurel", kelas: "MP" },
+        { Nomer: 8, nama_siswa: "Aurillia devitasari", nama_panggilan: "Devita", kelas: "MP" },
+        { Nomer: 9, nama_siswa: "Aurillia devitasari", nama_panggilan: "Ara cilung", kelas: "MP" },
+        { Nomer: 10, nama_siswa: "Berliana d.s", nama_panggilan: "Berliana", kelas: "MP" },
+        { Nomer: 11, nama_siswa: "Devi al karoni", nama_panggilan: "Devi/Depik", kelas: "MP" },
+        { Nomer: 12, nama_siswa: "Eka dwi wardani", nama_panggilan: "Eka", kelas: "MP" },
+        { Nomer: 13, nama_siswa: "Asti Galuh Rahajeng", nama_panggilan: "Ajeng", kelas: "MP" },
+        { Nomer: 14, nama_siswa: "Elsa Divia M", nama_panggilan: "Elsa", kelas: "MP" },
+        { Nomer: 15, nama_siswa: "Febriana attalya Z", nama_panggilan: "Ayara", kelas: "MP" },
+        { Nomer: 16, nama_siswa: "Intan dwi M", nama_panggilan: "Intan", kelas: "MP" },
+        { Nomer: 17, nama_siswa: "Juanita Dwi P", nama_panggilan: "Nita", kelas: "MP" },
+        { Nomer: 18, nama_siswa: "Kaiva muniroh", nama_panggilan: "Kaiva", kelas: "MP" },
+        { Nomer: 19, nama_siswa: "Kirani Adelia S", nama_panggilan: "Kirani", kelas: "MP" },
+        { Nomer: 20, nama_siswa: "Lyla auliya", nama_panggilan: "Lala", kelas: "MP" },
+        { Nomer: 21, nama_siswa: "Madinah alianisa", nama_panggilan: "Nisa", kelas: "MP" },
+        { Nomer: 22, nama_siswa: "Maicha Risqina Wijayanti", nama_panggilan: "Qina/Maicha", kelas: "MP" },
+        { Nomer: 23, nama_siswa: "Mey Rinda Rahmatullah S", nama_panggilan: "Rinda", kelas: "MP" },
+        { Nomer: 24, nama_siswa: "Nafilah aliya S", nama_panggilan: "Nafilah", kelas: "MP" },
+        { Nomer: 25, nama_siswa: "Nasywa fudina N.I", nama_panggilan: "Naswa", kelas: "MP" },
+        { Nomer: 26, nama_siswa: "Natalie omega putri L", nama_panggilan: "Natalie", kelas: "MP" },
+        { Nomer: 27, nama_siswa: "Nayla izma aura", nama_panggilan: "Ella", kelas: "MP" },
+        { Nomer: 28, nama_siswa: "Nur aini syafiyah", nama_panggilan: "Aini", kelas: "MP" },
+        { Nomer: 29, nama_siswa: "Putri Hanifah sekar D", nama_panggilan: "Hanifah", kelas: "MP" },
+        { Nomer: 30, nama_siswa: "Rachel Evangeline R", nama_panggilan: "Acel", kelas: "MP" },
+        { Nomer: 31, nama_siswa: "Rachma Laila M", nama_panggilan: "Laila", kelas: "MP" },
+        { Nomer: 32, nama_siswa: "Riska nur r", nama_panggilan: "Riska", kelas: "MP" },
+        { Nomer: 33, nama_siswa: "Salsabilla aura dewi", nama_panggilan: "Salsa", kelas: "MP" },
+        { Nomer: 34, nama_siswa: "Septiyasa antonio", nama_panggilan: "Aca", kelas: "MP" },
+        { Nomer: 35, nama_siswa: "Septya Putri Adilla", nama_panggilan: "Septya", kelas: "MP" },
+        { Nomer: 36, nama_siswa: "Shafira amalia p.w", nama_panggilan: "Feyy", kelas: "MP" },
+        { Nomer: 37, nama_siswa: "Sifatul Asmawati", nama_panggilan: "Syif", "kelas": "MP" },
+        { Nomer: 38, nama_siswa: "Tefrisia kanasybila gunawan", nama_panggilan: "Bila", kelas: "MP" },
+        { Nomer: 39, nama_siswa: "Zafina putri ramadhani", nama_panggilan: "Zafina", kelas: "MP" },
+        { Nomer: 40, nama_siswa: "Zaqonita lovisti f", nama_panggilan: "Tata", kelas: "MP" }
     ];
 
-    // Masukkan semua data secara massal ke database internal
-    dataAwal.forEach(siswa => {
-        alasql("INSERT INTO siswa_mpls VALUES (?,?,?,?)", siswa);
-    });
+    // Jalankan mesin pencari pertama kali halaman dibuka
+    jalankanQueryEngine();
 
-    // Jalankan pencarian otomatis pertama kali web dibuka
-    jalankanQuery();
-
-    // 3. FUNGSI UTAMA EKSEKUSI DATA
-    function jalankanQuery() {
-        const query = document.getElementById('sqlQuery').value;
+    // ENGINE UTAMA PARSING SQL VIA JAVASCRIPT NATIVE (ANTI GAGAL INTERNET)
+    function jalankanQueryEngine() {
+        const queryRaw = document.getElementById('sqlQuery').value.trim();
         const errorBox = document.getElementById('errorBox');
         const thead = document.getElementById('tabelHead');
         const tbody = document.getElementById('tabelBody');
         const jumlahData = document.getElementById('jumlahData');
 
+        // Reset Tampilan Awal
         errorBox.style.display = "none";
         thead.innerHTML = "";
         tbody.innerHTML = "";
         jumlahData.innerText = "Menampilkan: 0 baris";
 
-        try {
-            const hasil = alasql(query);
+        // Normalisasi teks query agar mudah dibaca program
+        const query = queryRaw.replace(/\s+/g, ' ');
+        const queryUpper = query.toUpperCase();
 
-            if (!hasil || hasil.length === 0) {
-                jumlahData.innerText = "Menampilkan: 0 baris (Data tidak cocok)";
-                return;
-            }
-
-            if (Array.isArray(hasil) && hasil.length > 0) {
-                jumlahData.innerText = "Menampilkan: " + hasil.length + " baris";
-                
-                // Ambil Judul Kolom secara dinamis
-                const kolom = Object.keys(hasil[0]);
-                const trHead = document.createElement('tr');
-                kolom.forEach(k => {
-                    const th = document.createElement('th');
-                    th.innerText = k;
-                    trHead.appendChild(th);
-                });
-                thead.appendChild(trHead);
-
-                // Masukkan Baris Nilai Data
-                hasil.forEach(row => {
-                    const trBody = document.createElement('tr');
-                    kolom.forEach(k => {
-                        const td = document.createElement('td');
-                        td.innerText = row[k] !== undefined ? row[k] : '';
-                        trBody.appendChild(td);
-                    });
-                    tbody.appendChild(trBody);
-                });
-            } else {
-                jumlahData.innerText = "Perintah database non-SELECT sukses dieksekusi.";
-            }
-        } catch (err) {
-            errorBox.innerText = "Sintaks SQL Salah Ketik: " + err.message;
-            errorBox.style.display = "block";
+        // Validasi Dasar Format Sintaks SQL SELECT
+        if (!queryUpper.startsWith("SELECT")) {
+            tampilkanEror("Aplikasi ini dikhususkan untuk pencarian data menggunakan perintah SELECT.");
+            return;
         }
-    }
+        if (!queryUpper.includes("FROM SISWA_MPLS")) {
+            tampilkanEror("Nama tabel salah atau tidak ditemukan. Gunakan tabel 'siswa_mpls'.");
+            return;
+        }
 
-    // Fungsi pencarian saat klik tombol Enter
-    document.getElementById("sqlQuery").addEventListener("keyup", function(event) {
-        if (event.key === "Enter") { jalankanQuery(); }
-    });
-</script>
+        let hasilFilter = [...databaseSiswa];
 
-</body>
-</html>
+        // LOGIKA PROSES SINTAKS WHERE SQL
+        if (queryUpper.includes("WHERE")) {
+            const bagianWhere = query.substring(queryUpper.indexOf("WHERE") + 5).trim();
+            
+            // Contoh Kasus 1: WHERE kelas = 'MP'
+            if (bagianWhere.toUpperCase().includes("KELAS =") || bagianWhere.toUpperCase().includes("KELAS=")) {
+                const cocokNilai = bagianWhere.match(/=\s*['"](.*?)['"]/i);
+                if (cocokNilai) {
+                    const kelasTarget = cocokNilai[1];
+                    hasilFilter = hasilFilter.filter(s => s.kelas.toLowerCase() === kelasTarget.toLowerCase());
+                } else {
+                    tampilkanEror("Kesalahan penulisan nilai parameter. Contoh yang benar: kelas = 'MP'");
+                    return;
+                }
+            }
+            // Contoh Kasus 2: WHERE Nomer < 10
+            else if (bagianWhere.toUpperCase().includes("NOMER <") || bagianWhere.toUpperCase().includes("NOMER<")) {
+                const cocokNilai = bagianWhere.match(/<\s*(\d+)/i);
+                if (cocokNilai) {
+                    const nomerTarget = parseInt(cocokNilai[1]);
