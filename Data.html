@@ -5,61 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Console Query SQL - Data Siswa MPLS</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 20px;
-            background-color: #f4f6f9;
-            color: #333;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f4f6f9; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0; }
-        .info-box {
-            background-color: #e8f4fd; border-left: 4px solid #3498db;
-            padding: 12px; margin-bottom: 20px; border-radius: 0 4px 4px 0; font-size: 14px;
-        }
+        .info-box { background-color: #e8f4fd; border-left: 4px solid #3498db; padding: 12px; margin-bottom: 20px; font-size: 14px; }
         .query-section { margin-bottom: 25px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #2c3e50; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
         .input-container { display: flex; gap: 10px; }
-        input[type="text"] {
-            flex: 1; padding: 12px; font-family: monospace; font-size: 15px;
-            border: 2px solid #bdc3c7; border-radius: 4px; box-sizing: border-box;
-            background-color: #fafafa;
-        }
-        input[type="text"]:focus { border-color: #3498db; outline: none; }
-        button {
-            background-color: #3498db; color: white; border: none;
-            padding: 0 25px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 15px;
-        }
+        input[type="text"] { flex: 1; padding: 12px; font-family: monospace; font-size: 15px; border: 2px solid #bdc3c7; border-radius: 4px; }
+        button { background-color: #3498db; color: white; border: none; padding: 0 25px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #2980b9; }
-        .error-message {
-            background-color: #fde8e8; color: #e74c3c; border-left: 4px solid #e74c3c;
-            padding: 10px; margin-top: 10px; border-radius: 0 4px 4px 0; font-size: 14px; display: none;
-        }
+        .error-message { background-color: #fde8e8; color: #e74c3c; border-left: 4px solid #e74c3c; padding: 10px; margin-top: 10px; display: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
         th { background-color: #2c3e50; color: white; }
         tr:nth-child(even) { background-color: #f9f9f9; }
-        .row-count { margin-top: 10px; font-weight: bold; color: #7f8c8d; font-size: 14px; }
+        .row-count { font-weight: bold; color: #7f8c8d; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Console Query SQL - Data Siswa MPLS</h2>
-    
     <div class="info-box">
-        <strong>Nama Tabel:</strong> <code>siswa_mpls</code> | 
-        <strong>Kolom Database:</strong> <code>Nomer</code>, <code>nama_siswa</code>, <code>nama_panggilan</code>, <code>kelas</code>
+        <strong>Nama Tabel:</strong> <code>siswa_mpls</code> | <strong>Kolom:</strong> Nomer, nama_siswa, nama_panggilan, kelas
     </div>
-
-    <!-- Area Pencarian SQL -->
     <div class="query-section">
         <label for="sqlQuery">Masukkan Perintah SQL / Pencarian Anda:</label>
         <div class="input-container">
@@ -68,13 +38,10 @@
         </div>
         <div id="errorBox" class="error-message"></div>
     </div>
-
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
         <h3>Hasil Eksekusi Data:</h3>
         <div class="row-count" id="jumlahData">Menampilkan: 0 baris</div>
     </div>
-
-    <!-- Tabel Output Data -->
     <table id="tabelHasil">
         <thead>
             <tr>
@@ -89,7 +56,6 @@
 </div>
 
 <script>
-    // 40 Data Siswa Utama
     const databaseSiswa = [
         { Nomer: 1, nama_siswa: "Adinda Calisya Putri", nama_panggilan: "Calisya atau Kall", kelas: "MP" },
         { Nomer: 2, nama_siswa: "Aira Melani Putri", nama_panggilan: "Aira", kelas: "MP" },
@@ -133,292 +99,45 @@
         { Nomer: 40, nama_siswa: "Zaqonita lovisti f", nama_panggilan: "Tata", kelas: "MP" }
     ];
 
-    // Fungsi otomatis berjalan saat pertama kali web dibuka
-    window.onload = function() {
-        jalankanQueryEngine();
-    };
+    window.onload = function() { jalankanQueryEngine(); };
 
-    // ENGINE PARSING QUERY SQL SEDERHANA
     function jalankanQueryEngine() {
-        const queryRaw = document.getElementById('sqlQuery').value.trim();
+        const query = document.getElementById('sqlQuery').value.trim().replace(/\s+/g, ' ');
         const errorBox = document.getElementById('errorBox');
         const tbody = document.getElementById('tabelBody');
         const jumlahData = document.getElementById('jumlahData');
 
         errorBox.style.display = "none";
         tbody.innerHTML = "";
-        jumlahData.innerText = "Menampilkan: 0 baris";
-
-        const query = queryRaw.replace(/\s+/g, ' ');
-        const queryUpper = query.toUpperCase();
-
-        if (!queryUpper.startsWith("SELECT")) {
-            tampilkanEror("Aplikasi ini hanya mendukung pencarian dengan perintah SELECT.");
-            return;
-        }
-        if (!queryUpper.includes("FROM SISWA_MPLS")) {
-            tampilkanEror("Nama tabel salah. Pastikan menggunakan nama tabel 'siswa_mpls'.");
+        
+        if (!query.toUpperCase().startsWith("SELECT") || !query.toUpperCase().includes("FROM SISWA_MPLS")) {
+            errorBox.innerText = "Sintaks SQL Salah: Gunakan format 'SELECT * FROM siswa_mpls WHERE kelas = \'MP\''";
+            errorBox.style.display = "block";
+            jumlahData.innerText = "Menampilkan: 0 baris";
             return;
         }
 
-        let hasilFilter = [...databaseSiswa];
-
-        // PROSES PENYARINGAN WHERE
-        if (queryUpper.includes("WHERE")) {
-            const bagianWhere = query.substring(queryUpper.indexOf("WHERE") + 5).trim();
-            const bagianWhereUpper = bagianWhere.toUpperCase();
-
-            // Filter: kelas = 'MP'
-            if (bagianWhereUpper.includes("KELAS =") || bagianWhereUpper.includes("KELAS=")) {
-                const cocokNilai = bagianWhere.match(/=\s*['"](.*?)['"]/i);
-                if (cocokNilai && cocokNilai[1]) {
-                    const kelasTarget = cocokNilai[1].trim().toLowerCase();
-                    hasilFilter = hasilFilter.filter(s => s.kelas.toLowerCase() === kelasTarget);
-                } else {
-                    tampilkanEror("Format nilai kelas salah. Contoh: kelas = 'MP'");
-                    return;
-                }
+        let hasil = [...databaseSiswa];
+        if (query.toUpperCase().includes("WHERE")) {
+            const match = query.match(/kelas\s*=\s*['"](.*?)['"]/i);
+            if (match) {
+                const target = match[1].toLowerCase();
+                hasil = hasil.filter(s => s.kelas.toLowerCase() === target);
             }
-            // Filter: Nomer < 10
-            else if (bagianWhereUpper.includes("NOMER <") || bagianWhereUpper.includes("NOMER<")) {
-                const cocokNilai = bagianWhere.match(/<\s*(\d+)/i);
-                if (cocokNilai && cocokNilai[1]) {
-                    const nomerTarget = parseInt(cocokNilai[1]);
-                    hasilFilter = hasilFilter.filter(s => s.Nomer < nomerTarget);
-                } else {
-                    tampilkanEror("Format angka Nomer salah. Contoh: Nomer < 10");
-                    return;
-                }
-            }
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Console Query SQL - Data Siswa MPLS</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 20px;
-            background-color: #f4f6f9;
-            color: #333;
         }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0; }
-        .info-box {
-            background-color: #e8f4fd; border-left: 4px solid #3498db;
-            padding: 12px; margin-bottom: 20px; border-radius: 0 4px 4px 0; font-size: 14px;
-        }
-        .query-section { margin-bottom: 25px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #2c3e50; }
-        .input-container { display: flex; gap: 10px; }
-        input[type="text"] {
-            flex: 1; padding: 12px; font-family: monospace; font-size: 15px;
-            border: 2px solid #bdc3c7; border-radius: 4px; box-sizing: border-box;
-            background-color: #fafafa;
-        }
-        input[type="text"]:focus { border-color: #3498db; outline: none; }
-        button {
-            background-color: #3498db; color: white; border: none;
-            padding: 0 25px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 15px;
-        }
-        button:hover { background-color: #2980b9; }
-        .error-message {
-            background-color: #fde8e8; color: #e74c3c; border-left: 4px solid #e74c3c;
-            padding: 10px; margin-top: 10px; border-radius: 0 4px 4px 0; font-size: 14px; display: none;
-        }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
-        th { background-color: #2c3e50; color: white; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        .row-count { margin-top: 10px; font-weight: bold; color: #7f8c8d; font-size: 14px; }
-    </style>
-</head>
-<body>
 
-<div class="container">
-    <h2>Console Query SQL - Data Siswa MPLS</h2>
-    
-    <div class="info-box">
-        <strong>Nama Tabel:</strong> <code>siswa_mpls</code> | 
-        <strong>Kolom Database:</strong> <code>Nomer</code>, <code>nama_siswa</code>, <code>nama_panggilan</code>, <code>kelas</code>
-    </div>
-
-    <!-- Area Pencarian SQL -->
-    <div class="query-section">
-        <label for="sqlQuery">Masukkan Perintah SQL / Pencarian Anda:</label>
-        <div class="input-container">
-            <input type="text" id="sqlQuery" value="SELECT * FROM siswa_mpls WHERE kelas = 'MP'">
-            <button onclick="jalankanQueryEngine()">Jalankan SQL</button>
-        </div>
-        <div id="errorBox" class="error-message"></div>
-    </div>
-
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>Hasil Eksekusi Data:</h3>
-        <div class="row-count" id="jumlahData">Menampilkan: 0 baris</div>
-    </div>
-
-    <!-- Tabel Output Data -->
-    <table id="tabelHasil">
-        <thead>
-            <tr>
-                <th>Nomer</th>
-                <th>Nama Siswa</th>
-                <th>Nama Panggilan</th>
-                <th>Kelas</th>
-            </tr>
-        </thead>
-        <tbody id="tabelBody"></tbody>
-    </table>
-</div>
-
-<script>
-    // 40 Data Siswa Utama
-    const databaseSiswa = [
-        { Nomer: 1, nama_siswa: "Adinda Calisya Putri", nama_panggilan: "Calisya atau Kall", kelas: "MP" },
-        { Nomer: 2, nama_siswa: "Aira Melani Putri", nama_panggilan: "Aira", kelas: "MP" },
-        { Nomer: 3, nama_siswa: "Alfiyatun Nur Nafizah", nama_panggilan: "Nefia", kelas: "MP" },
-        { Nomer: 4, nama_siswa: "Anissa Nur Febrianti", nama_panggilan: "Nisa", kelas: "MP" },
-        { Nomer: 5, nama_siswa: "Annisa Khoirotul Umma", nama_panggilan: "Asa", kelas: "MP" },
-        { Nomer: 6, nama_siswa: "Artika sandy ardianty", nama_panggilan: "Sandy", kelas: "MP" },
-        { Nomer: 7, nama_siswa: "Aurellia Kinar Trixy P", nama_panggilan: "Aurel", kelas: "MP" },
-        { Nomer: 8, nama_siswa: "Aurillia devitasari", nama_panggilan: "Devita", kelas: "MP" },
-        { Nomer: 9, nama_siswa: "Aurillia devitasari", nama_panggilan: "Ara cilung", kelas: "MP" },
-        { Nomer: 10, nama_siswa: "Berliana d.s", nama_panggilan: "Berliana", kelas: "MP" },
-        { Nomer: 11, nama_siswa: "Devi al karoni", nama_panggilan: "Devi/Depik", kelas: "MP" },
-        { Nomer: 12, nama_siswa: "Eka dwi wardani", nama_panggilan: "Eka", kelas: "MP" },
-        { Nomer: 13, nama_siswa: "Asti Galuh Rahajeng", nama_panggilan: "Ajeng", kelas: "MP" },
-        { Nomer: 14, nama_siswa: "Elsa Divia M", nama_panggilan: "Elsa", kelas: "MP" },
-        { Nomer: 15, nama_siswa: "Febriana attalya Z", nama_panggilan: "Ayara", kelas: "MP" },
-        { Nomer: 16, nama_siswa: "Intan dwi M", nama_panggilan: "Intan", kelas: "MP" },
-        { Nomer: 17, nama_siswa: "Juanita Dwi P", nama_panggilan: "Nita", kelas: "MP" },
-        { Nomer: 18, nama_siswa: "Kaiva muniroh", nama_panggilan: "Kaiva", kelas: "MP" },
-        { Nomer: 19, nama_siswa: "Kirani Adelia S", nama_panggilan: "Kirani", kelas: "MP" },
-        { Nomer: 20, nama_siswa: "Lyla auliya", nama_panggilan: "Lala", kelas: "MP" },
-        { Nomer: 21, nama_siswa: "Madinah alianisa", nama_panggilan: "Nisa", kelas: "MP" },
-        { Nomer: 22, nama_siswa: "Maicha Risqina Wijayanti", nama_panggilan: "Qina/Maicha", kelas: "MP" },
-        { Nomer: 23, nama_siswa: "Mey Rinda Rahmatullah S", nama_panggilan: "Rinda", kelas: "MP" },
-        { Nomer: 24, nama_siswa: "Nafilah aliya S", nama_panggilan: "Nafilah", kelas: "MP" },
-        { Nomer: 25, nama_siswa: "Nasywa fudina N.I", nama_panggilan: "Naswa", kelas: "MP" },
-        { Nomer: 26, nama_siswa: "Natalie omega putri L", nama_panggilan: "Natalie", kelas: "MP" },
-        { Nomer: 27, nama_siswa: "Nayla izma aura", nama_panggilan: "Ella", kelas: "MP" },
-        { Nomer: 28, nama_siswa: "Nur aini syafiyah", nama_panggilan: "Aini", kelas: "MP" },
-        { Nomer: 29, nama_siswa: "Putri Hanifah sekar D", nama_panggilan: "Hanifah", kelas: "MP" },
-        { Nomer: 30, nama_siswa: "Rachel Evangeline R", nama_panggilan: "Acel", kelas: "MP" },
-        { Nomer: 31, nama_siswa: "Rachma Laila M", nama_panggilan: "Laila", kelas: "MP" },
-        { Nomer: 32, nama_siswa: "Riska nur r", nama_panggilan: "Riska", kelas: "MP" },
-        { Nomer: 33, nama_siswa: "Salsabilla aura dewi", nama_panggilan: "Salsa", kelas: "MP" },
-        { Nomer: 34, nama_siswa: "Septiyasa antonio", nama_panggilan: "Aca", kelas: "MP" },
-        { Nomer: 35, nama_siswa: "Septya Putri Adilla", nama_panggilan: "Septya", kelas: "MP" },
-        { Nomer: 36, nama_siswa: "Shafira amalia p.w", nama_panggilan: "Feyy", kelas: "MP" },
-        { Nomer: 37, nama_siswa: "Sifatul Asmawati", nama_panggilan: "Syif", kelas: "MP" },
-        { Nomer: 38, nama_siswa: "Tefrisia kanasybila gunawan", nama_panggilan: "Bila", kelas: "MP" },
-        { Nomer: 39, nama_siswa: "Zafina putri ramadhani", nama_panggilan: "Zafina", kelas: "MP" },
-        { Nomer: 40, nama_siswa: "Zaqonita lovisti f", nama_panggilan: "Tata", kelas: "MP" }
-    ];
-
-    // Fungsi otomatis berjalan saat pertama kali web dibuka
-    window.onload = function() {
-        jalankanQueryEngine();
-    };
-
-    // ENGINE PARSING QUERY SQL SEDERHANA
-    function jalankanQueryEngine() {
-        const queryRaw = document.getElementById('sqlQuery').value.trim();
-        const errorBox = document.getElementById('errorBox');
-        const tbody = document.getElementById('tabelBody');
-        const jumlahData = document.getElementById('jumlahData');
-
-        errorBox.style.display = "none";
-        tbody.innerHTML = "";
-        jumlahData.innerText = "Menampilkan: 0 baris";
-
-        const query = queryRaw.replace(/\s+/g, ' ');
-        const queryUpper = query.toUpperCase();
-
-        if (!queryUpper.startsWith("SELECT")) {
-            tampilkanEror("Aplikasi ini hanya mendukung pencarian dengan perintah SELECT.");
-            return;
-        }
-        if (!queryUpper.includes("FROM SISWA_MPLS")) {
-            tampilkanEror("Nama tabel salah. Pastikan menggunakan nama tabel 'siswa_mpls'.");
+        jumlahData.innerText = "Menampilkan: " + hasil.length + " baris";
+        if (hasil.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Data tidak ditemukan</td></tr>`;
             return;
         }
 
-        let hasilFilter = [...databaseSiswa];
-
-        // PROSES PENYARINGAN WHERE
-        if (queryUpper.includes("WHERE")) {
-            const bagianWhere = query.substring(queryUpper.indexOf("WHERE") + 5).trim();
-            const bagianWhereUpper = bagianWhere.toUpperCase();
-
-            // Filter: kelas = 'MP'
-            if (bagianWhereUpper.includes("KELAS =") || bagianWhereUpper.includes("KELAS=")) {
-                const cocokNilai = bagianWhere.match(/=\s*['"](.*?)['"]/i);
-                if (cocokNilai && cocokNilai[1]) {
-                    const kelasTarget = cocokNilai[1].trim().toLowerCase();
-                    hasilFilter = hasilFilter.filter(s => s.kelas.toLowerCase() === kelasTarget);
-                } else {
-                    tampilkanEror("Format nilai kelas salah. Contoh: kelas = 'MP'");
-                    return;
-                }
-            }
-            // Filter: Nomer < 10
-            else if (bagianWhereUpper.includes("NOMER <") || bagianWhereUpper.includes("NOMER<")) {
-                const cocokNilai = bagianWhere.match(/<\s*(\d+)/i);
-                if (cocokNilai && cocokNilai[1]) {
-                    const nomerTarget = parseInt(cocokNilai[1]);
-                    hasilFilter = hasilFilter.filter(s => s.Nomer < nomerTarget);
-                } else {
-                    tampilkanEror("Format angka Nomer salah. Contoh: Nomer < 10");
-                    return;
-                }
-            }
-// Filter: nama_siswa LIKE '%Putri%'
-else if (bagianWhereUpper.includes("LIKE")) {
-const cocokNilai = bagianWhere.match(/LIKE\s*['"]%?(.*?)%?['"]/i);
-if (cocokNilai && cocokNilai[1]) {
-const keyword = cocokNilai[1].toLowerCase().trim();
-hasilFilter = hasilFilter.filter(s => s.nama_siswa.toLowerCase().includes(keyword));
-} else {
-tampilkanEror("Format kata kunci LIKE salah. Contoh: nama_siswa LIKE '%Putri%'");
-return;
-}
-} else {
-tampilkanEror("Kolom parameter klausa WHERE tidak valid.");
-return;
-}
-}
-// TAMPILKAN KE TABEL
-jumlahData.innerText = "Menampilkan: " + hasilFilter.length + " baris";
-if (hasilFilter.length === 0) {
-tbody.innerHTML = <tr><td colspan="4" style="text-align:center; color:#7f8c8d;">Data tidak ditemukan</td></tr>;
-return;
-}
-hasilFilter.forEach(row => {
-const tr = document.createElement('tr');
-tr.innerHTML = `
-${row.Nomer}
-${row.nama_siswa}
-${row.nama_panggilan}
-${row.kelas}
-`;
-tbody.appendChild(tr);
-});
-}
-function tampilkanEror(pesan) {
-const errorBox = document.getElementById('errorBox');
-errorBox.innerText = "Sintaks SQL Salah Ketik: " + pesan;
-errorBox.style.display = "block";
-}
-document.getElementById("sqlQuery").addEventListener("keyup", function(event) {
-if (event.key === "Enter") { jalankanQueryEngine(); }
-});
+        hasil.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${row.Nomer}</td><td>${row.nama_siswa}</td><td>${row.nama_panggilan}</td><td>${row.kelas}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+</script>
+</body>
+</html>
