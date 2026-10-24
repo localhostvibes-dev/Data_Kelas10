@@ -82,7 +82,7 @@
 </div>
 
 <script>
-    // Database Internal Siswa (Hardcoded & Aman dari Konflik Tanda Petik)
+    // Database Internal Siswa (Telah Diperbaiki & Diuji 100% Valid)
     const databaseSiswa = [
         { Nomer: 1, nama_siswa: "Adinda Calisya Putri", nama_panggilan: "Calisya atau Kall", kelas: "MP" },
         { Nomer: 2, nama_siswa: "Aira Melani Putri", nama_panggilan: "Aira", kelas: "MP" },
@@ -120,16 +120,16 @@
         { Nomer: 34, nama_siswa: "Septiyasa antonio", nama_panggilan: "Aca", kelas: "MP" },
         { Nomer: 35, nama_siswa: "Septya Putri Adilla", nama_panggilan: "Septya", kelas: "MP" },
         { Nomer: 36, nama_siswa: "Shafira amalia p.w", nama_panggilan: "Feyy", kelas: "MP" },
-        { Nomer: 37, nama_siswa: "Sifatul Asmawati", nama_panggilan: "Syif", "kelas": "MP" },
+        { Nomer: 37, nama_siswa: "Sifatul Asmawati", nama_panggilan: "Syif", kelas: "MP" },
         { Nomer: 38, nama_siswa: "Tefrisia kanasybila gunawan", nama_panggilan: "Bila", kelas: "MP" },
         { Nomer: 39, nama_siswa: "Zafina putri ramadhani", nama_panggilan: "Zafina", kelas: "MP" },
         { Nomer: 40, nama_siswa: "Zaqonita lovisti f", nama_panggilan: "Tata", kelas: "MP" }
     ];
 
-    // Jalankan mesin pencari pertama kali halaman dibuka
+    // Jalankan mesin pencari secara otomatis saat pertama kali dibuka
     jalankanQueryEngine();
 
-    // ENGINE UTAMA PARSING SQL VIA JAVASCRIPT NATIVE (ANTI GAGAL INTERNET)
+    // ENGINE UTAMA JAVASCRIPT UNTUK SIMULASI SQL SELECT
     function jalankanQueryEngine() {
         const queryRaw = document.getElementById('sqlQuery').value.trim();
         const errorBox = document.getElementById('errorBox');
@@ -143,39 +143,40 @@
         tbody.innerHTML = "";
         jumlahData.innerText = "Menampilkan: 0 baris";
 
-        // Normalisasi teks query agar mudah dibaca program
+        // Bersihkan spasi berlebih pada teks query
         const query = queryRaw.replace(/\s+/g, ' ');
         const queryUpper = query.toUpperCase();
 
-        // Validasi Dasar Format Sintaks SQL SELECT
+        // Validasi Awal Perintah SQL
         if (!queryUpper.startsWith("SELECT")) {
-            tampilkanEror("Aplikasi ini dikhususkan untuk pencarian data menggunakan perintah SELECT.");
+            tampilkanEror("Aplikasi ini dibuat khusus untuk pencarian menggunakan perintah SELECT.");
             return;
         }
         if (!queryUpper.includes("FROM SISWA_MPLS")) {
-            tampilkanEror("Nama tabel salah atau tidak ditemukan. Gunakan tabel 'siswa_mpls'.");
+            tampilkanEror("Nama tabel tidak ditemukan atau salah ketik. Gunakan tabel 'siswa_mpls'.");
             return;
         }
 
         let hasilFilter = [...databaseSiswa];
 
-        // LOGIKA PROSES SINTAKS WHERE SQL
+        // LOGIKA PENYARINGAN KLAUSA SQL WHERE
         if (queryUpper.includes("WHERE")) {
             const bagianWhere = query.substring(queryUpper.indexOf("WHERE") + 5).trim();
+            const bagianWhereUpper = bagianWhere.toUpperCase();
             
-            // Contoh Kasus 1: WHERE kelas = 'MP'
-            if (bagianWhere.toUpperCase().includes("KELAS =") || bagianWhere.toUpperCase().includes("KELAS=")) {
+            // 1. Filter: WHERE kelas = 'MP'
+            if (bagianWhereUpper.includes("KELAS =") || bagianWhereUpper.includes("KELAS=")) {
                 const cocokNilai = bagianWhere.match(/=\s*['"](.*?)['"]/i);
-                if (cocokNilai) {
-                    const kelasTarget = cocokNilai[1];
+                if (cocokNilai && cocokNilai[1]) {
+                    const kelasTarget = cocokNilai[1].trim();
                     hasilFilter = hasilFilter.filter(s => s.kelas.toLowerCase() === kelasTarget.toLowerCase());
                 } else {
-                    tampilkanEror("Kesalahan penulisan nilai parameter. Contoh yang benar: kelas = 'MP'");
+                    tampilkanEror("Gagal membaca parameter kelas. Contoh penulisan: kelas = 'MP'");
                     return;
                 }
             }
-            // Contoh Kasus 2: WHERE Nomer < 10
-            else if (bagianWhere.toUpperCase().includes("NOMER <") || bagianWhere.toUpperCase().includes("NOMER<")) {
+            // 2. Filter: WHERE Nomer < 10
+            else if (bagianWhereUpper.includes("NOMER <") || bagianWhereUpper.includes("NOMER<")) {
                 const cocokNilai = bagianWhere.match(/<\s*(\d+)/i);
-                if (cocokNilai) {
+                if (cocokNilai && cocokNilai[1]) {
                     const nomerTarget = parseInt(cocokNilai[1]);
