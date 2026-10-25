@@ -24,22 +24,24 @@
         th { background: #2c3e50; color: white; }
         tr:hover { background-color: #f9f9f9; }
         .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #3498db; }
+        
+        .loading { text-align: center; font-weight: bold; color: #7f8c8d; padding: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Sistem Database Siswa (Pure HTML + SQL Engine)</h2>
+    <h2>Sistem Database Siswa (HTML + SQL Engine Berhasil)</h2>
 
     <!-- Tempat Output Rumus SQL 2 & Rumus SQL 3 -->
     <div class="dashboard">
         <div class="card">
             <h3>Total Ringkasan (Rumus SQL 2)</h3>
-            <p class="angka" id="stat-siswa">Memuat...</p>
+            <p class="angka" id="stat-siswa">Memuat database...</p>
         </div>
         <div class="card">
             <h3>Sebaran Per Kelas (Rumus SQL 3)</h3>
-            <ul id="stat-kelas"><li>Memuat...</li></ul>
+            <ul id="stat-kelas"><li>Memuat database...</li></ul>
         </div>
     </div>
 
@@ -54,20 +56,24 @@
             </tr>
         </thead>
         <tbody id="tabel-siswa">
-            <!-- Data dimasukkan oleh perintah SQL -->
+            <tr>
+                <td colspan="4" class="loading">Sedang memproses perintah SQL...</td>
+            </tr>
         </tbody>
     </table>
 </div>
 
 <script>
-    // Konfigurasi awal untuk memuat mesin SQL di browser
-    const config = { locateFile: filename => `https://cloudflare.com{filename}` };
+    // Konfigurasi untuk memuat file WebAssembly SQL.js
+    const config = { 
+        locateFile: filename => `https://cloudflare.com{filename}` 
+    };
     
     initSqlJs(config).then(function(SQL){
-        // 1. MEMBUAT DATABASE SQL BARU DI MEMORI HTML
+        // 1. MEMBUAT DATABASE SQL BARU DI MEMORI BROWSER
         const db = new SQL.Database();
 
-        // 2. MEMBUAT TABEL SQL (Hanya Nomor, Nama, Kelas, Foto)
+        // 2. MEMBUAT TABEL SQL (Murni berisi Nomor, Nama, Kelas, Foto)
         db.run(`CREATE TABLE siswa (
             nomor TEXT PRIMARY KEY,
             nama_siswa TEXT NOT NULL,
@@ -87,13 +93,14 @@
         // EKSEKUSI LEBIH DARI SATU RUMUS / PERINTAH SQL ASLI
         // ========================================================
 
-        // --- RUMUS SQL 1: Mengambil semua data utama siswa ---
+        // --- RUMUS SQL 1: Mengambil semua data utama siswa untuk tabel ---
         const rumus_sql_1 = db.exec("SELECT foto, nomor, nama_siswa, kelas FROM siswa ORDER BY nomor ASC");
-        const barisSiswa = rumus_sql_1[0].values;
+        const barisSiswa = rumus_sql_1[0].values; // Perbaikan pembacaan array array [0]
         const tbody = document.getElementById('tabel-siswa');
-        tbody.innerHTML = ''; // Kosongkan placeholder
+        tbody.innerHTML = ''; // Hapus tulisan loading
         
         barisSiswa.forEach(row => {
+            // row[0] = foto, row[1] = nomor, row[2] = nama_siswa, row[3] = kelas
             tbody.innerHTML += `
                 <tr>
                     <td><img src="${row[0]}" class="avatar" alt="Foto"></td>
@@ -104,19 +111,20 @@
             `;
         });
 
-        // --- RUMUS SQL 2: Menghitung total siswa & jumlah kelas unik ---
+        // --- RUMUS SQL 2: Rumus menghitung total siswa & jumlah kelas unik ---
         const rumus_sql_2 = db.exec("SELECT COUNT(*), COUNT(DISTINCT kelas) FROM siswa");
         const totalSiswa = rumus_sql_2[0].values[0][0];
         const totalKelas = rumus_sql_2[0].values[0][1];
         document.getElementById('stat-siswa').innerText = `${totalSiswa} Siswa (${totalKelas} Kelas)`;
 
-        // --- RUMUS SQL 3: Mengelompokkan sebaran jumlah siswa per kelas ---
+        // --- RUMUS SQL 3: Rumus mengelompokkan sebaran jumlah siswa per kelas ---
         const rumus_sql_3 = db.exec("SELECT kelas, COUNT(*) FROM siswa GROUP BY kelas");
         const barisKelas = rumus_sql_3[0].values;
         const ulKelas = document.getElementById('stat-kelas');
-        ulKelas.innerHTML = ''; // Kosongkan placeholder
+        ulKelas.innerHTML = ''; // Hapus tulisan loading
         
         barisKelas.forEach(row => {
+            // row[0] = nama kelas, row[1] = jumlah orang di kelas itu
             ulKelas.innerHTML += `<li>Kelas <strong>${row[0]}</strong>: ${row[1]} Orang</li>`;
         });
     });
