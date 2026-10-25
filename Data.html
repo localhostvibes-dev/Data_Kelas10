@@ -31,7 +31,7 @@
         .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #3498db; }
         
         .loading { text-align: center; font-weight: bold; color: #7f8c8d; padding: 20px; }
-        .empty-row { color: #e74c3c; font-weight: bold; }
+        .empty-row { color: #7f8c8d; font-style: italic; }
     </style>
 </head>
 <body>
@@ -53,7 +53,7 @@
 
     <!-- Input Pencarian -->
     <div class="search-container">
-        <input type="text" id="input-cari" class="search-input" placeholder="🔍 Cari nama siswa di sini..." oninput="cariDataSiswa()">
+        <input type="text" id="input-cari" class="search-input" placeholder="🔍 Ketik nama siswa untuk mencari..." oninput="cariDataSiswa()">
     </div>
 
     <!-- Tabel Utama -->
@@ -68,26 +68,22 @@
         </thead>
         <tbody id="tabel-siswa">
             <tr>
-                <td colspan="4" class="loading">Sedang memproses perintah SQL...</td>
+                <td colspan="4" class="empty-row">Silakan ketik nama siswa di kolom pencarian di atas.</td>
             </tr>
         </tbody>
     </table>
 </div>
 
 <script>
-    // Variabel global untuk menyimpan instansiasi database SQL
     let databaseSQL;
 
-    // Konfigurasi untuk memuat file WebAssembly SQL.js
     const config = { 
         locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${filename}` 
     };
     
     initSqlJs(config).then(function(SQL){
-        // 1. MEMBUAT DATABASE SQL BARU DI MEMORI BROWSER
         databaseSQL = new SQL.Database();
 
-        // 2. MEMBUAT TABEL SQL
         databaseSQL.run(`CREATE TABLE siswa (
             nomor TEXT PRIMARY KEY,
             nama_siswa TEXT NOT NULL,
@@ -95,7 +91,6 @@
             foto TEXT NOT NULL
         );`);
 
-        // 3. MENGISI DATA KE DATABASE SQL (Menggunakan avatar valid agar gambar tampil)
         databaseSQL.run(`INSERT INTO siswa VALUES 
             ('1001', 'Budi Santoso', '12 RPL 1', 'https://ui-avatars.com/api/?name=Budi+Santoso&background=3498db&color=fff'),
             ('1002', 'Siti Aminah', '12 RPL 1', 'https://ui-avatars.com/api/?name=Siti+Aminah&background=e74c3c&color=fff'),
@@ -103,23 +98,18 @@
             ('1004', 'Alya Putri', '12 RPL 2', 'https://ui-avatars.com/api/?name=Alya+Putri&background=9b59b6&color=fff');
         `);
 
-        // Hitung dan tampilkan dashboard statistik awal
+        // Hitung statistik saja saat awal load (tabel dibiarkan kosong)
         hitungStatistik();
-        
-        // Tampilkan semua data siswa saat pertama kali dimuat
-        renderTabel("SELECT foto, nomor, nama_siswa, kelas FROM siswa ORDER BY nomor ASC");
     });
 
-    // --- RUMUS REUSABLE: Merender tabel berdasarkan Query SQL (mendukung parameter binding) ---
     function renderTabel(querySQL, param = []) {
         const tbody = document.getElementById('tabel-siswa');
-        tbody.innerHTML = ''; // Kosongkan tabel
+        tbody.innerHTML = '';
         
         try {
             let barisSiswa = [];
 
             if (param.length > 0) {
-                // Gunakan prepare & bind karena query memiliki parameter aman (?)
                 const stmt = databaseSQL.prepare(querySQL);
                 stmt.bind(param);
                 while (stmt.step()) {
@@ -127,15 +117,12 @@
                 }
                 stmt.free();
             } else {
-                // Gunakan exec standar jika tidak ada parameter
                 const hasilQuery = databaseSQL.exec(querySQL);
                 if (hasilQuery.length > 0 && hasilQuery[0].values.length > 0) {
-                    barisSisiwa = hasilQuery[0].values;
                     barisSiswa = hasilQuery[0].values;
                 }
             }
             
-            // Cek apakah ada data yang ditemukan
             if (barisSiswa.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="empty-row">Data siswa tidak ditemukan.</td></tr>`;
                 return;
@@ -157,20 +144,23 @@
         }
     }
 
-    // --- RUMUS PENCARIAN: Menyaring data berdasarkan ketikan keyword ---
     function cariDataSiswa() {
-        const keyword = document.getElementById('input-cari').value;
+        const keyword = document.getElementById('input-cari').value.trim();
+        const tbody = document.getElementById('tabel-siswa');
+
+        // Jika kotak pencarian dikosongkan, tabel kembali kosong
+        if (keyword === "") {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-row">Silakan ketik nama siswa di kolom pencarian di atas.</td></tr>`;
+            return;
+        }
         
-        // Menjalankan Rumus Query SQL Pencarian menggunakan operator LIKE bertingkat
         const queryPencarian = `SELECT foto, nomor, nama_siswa, kelas FROM siswa 
                                 WHERE nama_siswa LIKE ? OR nomor LIKE ? OR kelas LIKE ? 
                                 ORDER BY nomor ASC`;
         
-        // Kirim keyword dengan wildcard (%) ke fungsi render
         renderTabel(queryPencarian, [`%${keyword}%`, `%${keyword}%`, `%${keyword}%`]);
     }
 
-    // --- RUMUS STATISTIK: Menghitung total siswa & sebaran kelas ---
     function hitungStatistik() {
         const rumus_sql_2 = databaseSQL.exec("SELECT COUNT(*), COUNT(DISTINCT kelas) FROM siswa");
         const totalSiswa = rumus_sql_2[0].values[0][0];
