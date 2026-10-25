@@ -28,7 +28,16 @@
         th, td { padding: 12px 15px; text-align: center; border-bottom: 1px solid #eee; }
         th { background: #2c3e50; color: white; }
         tr:hover { background-color: #f9f9f9; }
-        .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #3498db; }
+        
+        /* Pengaturan Foto Agar Pas di Bundaran Sempurna */
+        .avatar { 
+            width: 45px; 
+            height: 45px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            object-position: center; 
+            border: 2px solid #3498db; 
+        }
         
         .loading { text-align: center; font-weight: bold; color: #7f8c8d; padding: 20px; }
         .empty-row { color: #7f8c8d; font-style: italic; }
@@ -61,7 +70,7 @@
         <thead>
             <tr>
                 <th>Foto Orang</th>
-                <th>Nomer</th>
+                <th>Nomor</th>
                 <th>Nama Siswa</th>
                 <th>Kelas</th>
             </tr>
@@ -92,7 +101,7 @@
         );`);
 
         databaseSQL.run(`INSERT INTO siswa VALUES 
-            ('001', 'Adinda Calisya Putri', 'MP', 'Adinda Calisya Putri.png'),
+            ('001', 'Adinda Calisya Putri', 'MP', 'https://ui-avatars.com/api/?name=Adinda+Calisya+Putri&background=3498db&color=fff'),
             ('002', 'Siti Aminah', '12 RPL 1', 'https://ui-avatars.com/api/?name=Siti+Aminah&background=e74c3c&color=fff'),
             ('003', 'Rian Hidayat', '12 RPL 2', 'https://ui-avatars.com/api/?name=Rian+Hidayat&background=2ecc71&color=fff'),
             ('004', 'Alya Putri', '12 RPL 2', 'https://ui-avatars.com/api/?name=Alya+Putri&background=9b59b6&color=fff');
