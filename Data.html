@@ -12,11 +12,16 @@
         h2 { text-align: center; color: #2c3e50; }
         
         /* Dashboard Statistik */
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .card h3 { margin: 0 0 10px 0; color: #7f8c8d; font-size: 0.9rem; text-transform: uppercase; }
         .angka { font-size: 1.8rem; font-weight: bold; color: #2c3e50; margin: 0; }
         ul { padding-left: 20px; margin: 0; }
+
+        /* Fitur Pencarian */
+        .search-container { margin-bottom: 20px; text-align: left; }
+        .search-input { width: 100%; max-width: 400px; padding: 12px 15px; border: 2px solid #ccc; border-radius: 6px; font-size: 1rem; box-sizing: border-box; outline: none; transition: 0.3s; }
+        .search-input:focus { border-color: #3498db; box-shadow: 0 0 5px rgba(52,152,219,0.3); }
 
         /* Tabel Data */
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
@@ -26,12 +31,13 @@
         .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #3498db; }
         
         .loading { text-align: center; font-weight: bold; color: #7f8c8d; padding: 20px; }
+        .empty-row { color: #e74c3c; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Sistem Database Siswa (HTML + SQL Engine Berhasil)</h2>
+    <h2>Sistem Database Siswa (HTML + SQL Search Engine)</h2>
 
     <!-- Tempat Output Rumus SQL 2 & Rumus SQL 3 -->
     <div class="dashboard">
@@ -45,7 +51,12 @@
         </div>
     </div>
 
-    <!-- Tempat Output Rumus SQL 1 (Tabel Utama) -->
+    <!-- Input Pencarian -->
+    <div class="search-container">
+        <input type="text" id="input-cari" class="search-input" placeholder="🔍 Cari nama siswa di sini..." oninput="cariDataSiswa()">
+    </div>
+
+    <!-- Tempat Output Rumus SQL 1 & Rumus SQL Pencarian (Tabel Utama) -->
     <table>
         <thead>
             <tr>
@@ -64,6 +75,9 @@
 </div>
 
 <script>
+    // Variabel global untuk menyimpan instansiasi database SQL
+    let databaseSQL;
+
     // Konfigurasi untuk memuat file WebAssembly SQL.js
     const config = { 
         locateFile: filename => `https://cloudflare.com{filename}` 
@@ -71,10 +85,10 @@
     
     initSqlJs(config).then(function(SQL){
         // 1. MEMBUAT DATABASE SQL BARU DI MEMORI BROWSER
-        const db = new SQL.Database();
+        databaseSQL = new SQL.Database();
 
         // 2. MEMBUAT TABEL SQL (Murni berisi Nomor, Nama, Kelas, Foto)
-        db.run(`CREATE TABLE siswa (
+        databaseSQL.run(`CREATE TABLE siswa (
             nomor TEXT PRIMARY KEY,
             nama_siswa TEXT NOT NULL,
             kelas TEXT NOT NULL,
@@ -82,52 +96,81 @@
         );`);
 
         // 3. MENGISI DATA KE DATABASE SQL
-        db.run(`INSERT INTO siswa VALUES 
+        databaseSQL.run(`INSERT INTO siswa VALUES 
             ('1001', 'Budi Santoso', '12 RPL 1', 'https://unsplash.com'),
             ('1002', 'Siti Aminah', '12 RPL 1', 'https://unsplash.com'),
             ('1003', 'Rian Hidayat', '12 RPL 2', 'https://unsplash.com'),
             ('1004', 'Alya Putri', '12 RPL 2', 'https://unsplash.com');
         `);
 
-        // ========================================================
-        // EKSEKUSI LEBIH DARI SATU RUMUS / PERINTAH SQL ASLI
-        // ========================================================
-
-        // --- RUMUS SQL 1: Mengambil semua data utama siswa untuk tabel ---
-        const rumus_sql_1 = db.exec("SELECT foto, nomor, nama_siswa, kelas FROM siswa ORDER BY nomor ASC");
-        const barisSiswa = rumus_sql_1[0].values; // Perbaikan pembacaan array array [0]
-        const tbody = document.getElementById('tabel-siswa');
-        tbody.innerHTML = ''; // Hapus tulisan loading
+        // Hitung dan tampilkan dashboard statistik awal
+        hitungStatistik();
         
-        barisSiswa.forEach(row => {
-            // row[0] = foto, row[1] = nomor, row[2] = nama_siswa, row[3] = kelas
-            tbody.innerHTML += `
-                <tr>
-                    <td><img src="${row[0]}" class="avatar" alt="Foto"></td>
-                    <td>${row[1]}</td>
-                    <td><strong>${row[2]}</strong></td>
-                    <td>${row[3]}</td>
-                </tr>
-            `;
-        });
+        // Tampilkan semua data siswa saat pertama kali dimuat
+        renderTabel("SELECT foto, nomor, nama_siswa, kelas FROM siswa ORDER BY nomor ASC");
+    });
 
-        // --- RUMUS SQL 2: Rumus menghitung total siswa & jumlah kelas unik ---
-        const rumus_sql_2 = db.exec("SELECT COUNT(*), COUNT(DISTINCT kelas) FROM siswa");
+    // --- RUMUS REUSABLE: Fungsi untuk merender tabel berdasarkan Query SQL yang dimasukkan ---
+    function renderTabel(querySQL, param = []) {
+        const tbody = document.getElementById('tabel-siswa');
+        tbody.innerHTML = ''; // Kosongkan tabel
+        
+        try {
+            const hasilQuery = databaseSQL.exec(querySQL, param);
+            
+            // Cek apakah ada data yang ditemukan
+            if (hasilQuery.length === 0 || hasilQuery[0].values.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="empty-row">Data siswa tidak ditemukan.</td></tr>`;
+                return;
+            }
+
+            const barisSiswa = hasilQuery[0].values;
+            barisSiswa.forEach(row => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><img src="${row[0]}" class="avatar" alt="Foto"></td>
+                        <td>${row[1]}</td>
+                        <td><strong>${row[2]}</strong></td>
+                        <td>${row[3]}</td>
+                    </tr>
+                `;
+            });
+        } catch (error) {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-row">Kesalahan Query SQL.</td></tr>`;
+        }
+    }
+
+    // --- RUMUS PENCARIAN: Berfungsi menyaring data berdasarkan ketikan keyword ---
+    function cariDataSiswa() {
+        const keyword = document.getElementById('input-cari').value;
+        
+        // Menjalankan Rumus Query SQL Pencarian menggunakan operator LIKE bertingkat
+        const queryPencarian = `SELECT foto, nomor, nama_siswa, kelas FROM siswa 
+                                WHERE nama_siswa LIKE ? OR nomor LIKE ? OR kelas LIKE ? 
+                                ORDER BY nomor ASC`;
+        
+        // Kirim keyword dengan wildcard (%) khas SQL ke fungsi render
+        renderTabel(queryPencarian, [`%${keyword}%`, `%${keyword}%`, `%${keyword}%`]);
+    }
+
+    // --- RUMUS STATISTIK: Menjalankan Rumus SQL 2 dan SQL 3 ---
+    function hitungStatistik() {
+        // Rumus SQL 2: Menghitung total siswa & jumlah kelas unik
+        const rumus_sql_2 = databaseSQL.exec("SELECT COUNT(*), COUNT(DISTINCT kelas) FROM siswa");
         const totalSiswa = rumus_sql_2[0].values[0][0];
         const totalKelas = rumus_sql_2[0].values[0][1];
         document.getElementById('stat-siswa').innerText = `${totalSiswa} Siswa (${totalKelas} Kelas)`;
 
-        // --- RUMUS SQL 3: Rumus mengelompokkan sebaran jumlah siswa per kelas ---
-        const rumus_sql_3 = db.exec("SELECT kelas, COUNT(*) FROM siswa GROUP BY kelas");
+        // Rumus SQL 3: Mengelompokkan sebaran jumlah siswa per kelas
+        const rumus_sql_3 = databaseSQL.exec("SELECT kelas, COUNT(*) FROM siswa GROUP BY kelas");
         const barisKelas = rumus_sql_3[0].values;
         const ulKelas = document.getElementById('stat-kelas');
-        ulKelas.innerHTML = ''; // Hapus tulisan loading
+        ulKelas.innerHTML = '';
         
         barisKelas.forEach(row => {
-            // row[0] = nama kelas, row[1] = jumlah orang di kelas itu
             ulKelas.innerHTML += `<li>Kelas <strong>${row[0]}</strong>: ${row[1]} Orang</li>`;
         });
-    });
+    }
 </script>
 
 </body>
