@@ -29,11 +29,11 @@
         th { background: #2c3e50; color: white; }
         tr:hover { background-color: #f9f9f9; }
         
-        /* Pengaturan Foto Agar Pas di Bundaran Sempurna */
+        /* Pengaturan Foto Menjadi Kotak */
         .avatar { 
             width: 45px; 
             height: 45px; 
-            border-radius: 50%; 
+            border-radius: 6px;        /* Ubah jadi 0 jika ingin sudut kotak yang siku-siku tajam */
             object-fit: cover; 
             object-position: center; 
             border: 2px solid #3498db; 
@@ -107,7 +107,6 @@
             ('004', 'Alya Putri', '12 RPL 2', 'https://ui-avatars.com/api/?name=Alya+Putri&background=9b59b6&color=fff');
         `);
 
-        // Hitung statistik saja saat awal load (tabel dibiarkan kosong)
         hitungStatistik();
     });
 
@@ -157,7 +156,6 @@
         const keyword = document.getElementById('input-cari').value.trim();
         const tbody = document.getElementById('tabel-siswa');
 
-        // Jika kotak pencarian dikosongkan, tabel kembali kosong
         if (keyword === "") {
             tbody.innerHTML = `<tr><td colspan="4" class="empty-row">Silakan ketik nama siswa di kolom pencarian di atas.</td></tr>`;
             return;
