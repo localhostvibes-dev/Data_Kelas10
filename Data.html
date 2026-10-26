@@ -338,7 +338,7 @@
             <img id="modalImg" src="" alt="Foto Siswa" onerror="this.src='https://via.placeholder.com/300?text=Foto+Tidak+Ditemukan'">
         </div>
         <h3 id="modalNama">-</h3>
-        <p><span id="modalNomor">-</span> &bull; Kelas: <span id="modalKelas">-</span></p>
+        <p>Nomor Absen: <span id="modalNomor">-</span> &bull; Kelas: <span id="modalKelas">-</span></p>
         <button class="modal-close-btn" onclick="tutupModalBtn()">Tutup</button>
     </div>
 </div>
@@ -412,7 +412,7 @@
         modalImg.src = '';
         
         modalImg.src = foto;
-        document.getElementById('modalNomor').innerText = parseInt(nomor, 10);
+        document.getElementById('modalNomor').innerText = nomor;
         document.getElementById('modalNama').innerText = nama;
         document.getElementById('modalKelas').innerText = kelas;
         document.getElementById('modalFoto').classList.add('active');
@@ -449,6 +449,7 @@
             } else {
                 const hasilQuery = databaseSQL.exec(querySQL);
                 if (hasilQuery.length > 0 && hasilQuery[0].values.length > 0) {
+                    barisSism = hasilQuery[0].values; // Wait, let's keep it safe: barisSiswa
                     barisSiswa = hasilQuery[0].values;
                 }
             }
@@ -464,7 +465,6 @@
             barisSiswa.forEach(row => {
                 const foto = row[0];
                 const nomor = row[1];
-                const nomorBersih = parseInt(nomor, 10);
                 const nama = row[2].replace(/'/g, "\\'");
                 const kelas = row[3];
 
@@ -477,7 +477,7 @@
                                 </svg>
                             </button>
                         </td>
-                        <td><code>${nomorBersih}</code></td>
+                        <td><code>${row[1]}</code></td>
                         <td><strong>${row[2]}</strong></td>
                         <td><span class="badge">${row[3]}</span></td>
                     </tr>
