@@ -105,7 +105,7 @@
             margin-bottom: 4px;
         }
 
-        /* Panel Tambah Siswa (Collapsible/Modal-like) */
+        /* Panel Tambah Siswa */
         .form-panel {
             background: var(--card-bg);
             border: 1px solid var(--border);
@@ -220,20 +220,53 @@
             background-color: #f8fafc; 
         }
         
-        .avatar { 
-            width: 45px; 
-            height: 45px; 
+        /* Styling Kotak Foto Interaktif (Hidden by default) */
+        .foto-wrapper { 
+            width: 48px; 
+            height: 48px; 
             border-radius: 8px; 
-            object-fit: cover; 
-            object-position: center; 
-            border: 2px solid var(--border); 
             background-color: #e2e8f0;
+            border: 2px solid var(--border); 
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .foto-wrapper:hover {
+            border-color: var(--primary);
+            background-color: #c7d2fe;
+        }
+
+        .foto-wrapper .text-klik {
+            font-size: 0.7rem;
             font-weight: bold;
             color: var(--text-muted);
-            font-size: 0.75rem;
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        .foto-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: none; /* Awalnya disembunyikan */
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Jika diklik, class 'show' aktif dan foto ditampilkan */
+        .foto-wrapper.show img {
+            display: block;
+        }
+
+        .foto-wrapper.show .text-klik {
+            display: none;
         }
 
         .badge {
@@ -261,7 +294,7 @@
         <button class="btn" onclick="toggleFormTambah()">➕ Tambah Siswa Baru</button>
     </header>
 
-    <!-- Panel Tambah Data (Hidden by default) -->
+    <!-- Panel Tambah Data -->
     <div class="form-panel" id="panel-tambah">
         <h3 style="margin-top:0; margin-bottom:15px; color:var(--text-main);">Form Input Siswa Baru</h3>
         <div class="form-grid">
@@ -410,7 +443,6 @@
         try {
             databaseSQL.run(`INSERT INTO siswa (nomor, nama_siswa, kelas, foto) VALUES (?, ?, ?, ?)`, [nomor, nama, kelas, foto]);
             
-            // Reset form
             document.getElementById('input-nomor').value = '';
             document.getElementById('input-nama').value = '';
             document.getElementById('input-foto').value = '';
@@ -458,7 +490,10 @@
                 tbody.innerHTML += `
                     <tr>
                         <td>
-                            <img src="${row[0]}" class="avatar" alt="${row[2]}" onerror="this.replaceWith(Object.assign(document.createElement('div'), {className: 'avatar', innerText: '${row[2].substring(0,2).toUpperCase()}'}))">
+                            <div class="foto-wrapper" onclick="this.classList.toggle('show')" title="Klik untuk tampilkan/sembunyikan foto">
+                                <span class="text-klik">Lihat<br>Foto</span>
+                                <img src="${row[0]}" alt="${row[2]}" onerror="this.remove()">
+                            </div>
                         </td>
                         <td><code>${row[1]}</code></td>
                         <td><strong>${row[2]}</strong></td>
