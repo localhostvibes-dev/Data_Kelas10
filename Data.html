@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Database Siswa Kelas 10</title>
+    <title>Database Siswa Kelas 10 - Pro Edition</title>
     <!-- Memuat Library SQL.js via CDN resmi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
             --primary-hover: #4338ca;
+            --success: #10b981;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-main: #1e293b;
@@ -30,13 +31,39 @@
             margin: auto; 
         }
 
-        h2 { 
-            text-align: center; 
-            color: var(--text-main); 
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h2 { 
+            color: var(--text-main); 
+            margin: 0;
             font-size: 1.8rem;
         }
         
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
         /* Dashboard Statistik */
         .dashboard { 
             display: grid; 
@@ -49,7 +76,7 @@
             background: var(--card-bg); 
             padding: 24px; 
             border-radius: 12px; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
             border: 1px solid var(--border);
         }
 
@@ -78,27 +105,82 @@
             margin-bottom: 4px;
         }
 
+        /* Panel Tambah Siswa (Collapsible/Modal-like) */
+        .form-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: none;
+        }
+
+        .form-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
         /* Fitur Pencarian */
         .search-container { 
-            margin-bottom: 20px; 
+            margin-bottom: 15px; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .search-input { 
-            width: 100%; 
-            max-width: 100%; 
-            padding: 14px 18px; 
-            border: 2px solid var(--border); 
-            border-radius: 10px; 
+            border: none; 
             font-size: 1rem; 
-            box-sizing: border-box; 
             outline: none; 
-            transition: all 0.2s ease; 
-            background: white;
+            width: 100%;
+            background: transparent;
         }
 
-        .search-input:focus { 
-            border-color: var(--primary); 
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); 
+        .search-info {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: nowrap;
         }
 
         /* Tabel Data Responsive */
@@ -138,10 +220,9 @@
             background-color: #f8fafc; 
         }
         
-        /* Avatar & Badge */
         .avatar { 
-            width: 48px; 
-            height: 48px; 
+            width: 45px; 
+            height: 45px; 
             border-radius: 8px; 
             object-fit: cover; 
             object-position: center; 
@@ -152,7 +233,7 @@
             justify-content: center;
             font-weight: bold;
             color: var(--text-muted);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
 
         .badge {
@@ -175,7 +256,34 @@
 <body>
 
 <div class="container">
-    <h2>Sistem Database Siswa Kelas 10</h2>
+    <header>
+        <h2>Sistem Database Siswa Kelas 10</h2>
+        <button class="btn" onclick="toggleFormTambah()">➕ Tambah Siswa Baru</button>
+    </header>
+
+    <!-- Panel Tambah Data (Hidden by default) -->
+    <div class="form-panel" id="panel-tambah">
+        <h3 style="margin-top:0; margin-bottom:15px; color:var(--text-main);">Form Input Siswa Baru</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Nomor Absen / ID</label>
+                <input type="text" id="input-nomor" class="form-control" placeholder="Contoh: 041">
+            </div>
+            <div class="form-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="input-nama" class="form-control" placeholder="Nama lengkap siswa">
+            </div>
+            <div class="form-group">
+                <label>Kelas / Jurusan</label>
+                <input type="text" id="input-kelas" class="form-control" value="MP">
+            </div>
+            <div class="form-group">
+                <label>Nama File Foto</label>
+                <input type="text" id="input-foto" class="form-control" placeholder="nama_file.png">
+            </div>
+        </div>
+        <button class="btn" style="background-color: var(--success);" onclick="simpanSiswaBaru()">💾 Simpan ke Database</button>
+    </div>
 
     <!-- Dashboard Statistik -->
     <div class="dashboard">
@@ -192,6 +300,7 @@
     <!-- Input Pencarian -->
     <div class="search-container">
         <input type="text" id="input-cari" class="search-input" placeholder="🔍 Ketik nama siswa, nomor, atau kelas untuk mencari..." oninput="cariDataSiswa()">
+        <span class="search-info" id="search-info">Semua data</span>
     </div>
 
     <!-- Tabel Utama -->
@@ -207,7 +316,7 @@
             </thead>
             <tbody id="tabel-siswa">
                 <tr>
-                    <td colspan="4" class="empty-row">Silakan ketik nama siswa di kolom pencarian di atas.</td>
+                    <td colspan="4" class="empty-row">Memuat data dari database...</td>
                 </tr>
             </tbody>
         </table>
@@ -274,8 +383,47 @@
             ('040', 'Zaqonita lovisti f', 'MP', 'Zaqonita lovisti f.png');
         `);
 
+        muatSemuaData();
         hitungStatistik();
     });
+
+    function toggleFormTambah() {
+        const panel = document.getElementById('panel-tambah');
+        panel.classList.toggle('active');
+    }
+
+    function simpanSiswaBaru() {
+        const nomor = document.getElementById('input-nomor').value.trim();
+        const nama = document.getElementById('input-nama').value.trim();
+        const kelas = document.getElementById('input-kelas').value.trim();
+        let foto = document.getElementById('input-foto').value.trim();
+
+        if(!nomor || !nama) {
+            alert('Nomor dan Nama Siswa wajib diisi!');
+            return;
+        }
+
+        if(!foto) {
+            foto = nama + '.png';
+        }
+
+        try {
+            databaseSQL.run(`INSERT INTO siswa (nomor, nama_siswa, kelas, foto) VALUES (?, ?, ?, ?)`, [nomor, nama, kelas, foto]);
+            
+            // Reset form
+            document.getElementById('input-nomor').value = '';
+            document.getElementById('input-nama').value = '';
+            document.getElementById('input-foto').value = '';
+            toggleFormTambah();
+
+            muatSemuaData();
+            hitungStatistik();
+            alert('Data siswa berhasil disimpan ke database!');
+        } catch (error) {
+            alert('Gagal menyimpan: Nomor absen mungkin sudah terdaftar.');
+            console.error(error);
+        }
+    }
 
     function renderTabel(querySQL, param = []) {
         const tbody = document.getElementById('tabel-siswa');
@@ -300,11 +448,13 @@
             
             if (barisSiswa.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="empty-row">Data siswa tidak ditemukan.</td></tr>`;
+                document.getElementById('search-info').innerText = `0 ditemukan`;
                 return;
             }
 
+            document.getElementById('search-info').innerText = `${barisSiswa.length} data ditampilkan`;
+
             barisSiswa.forEach(row => {
-                // Handle jika foto gagal dimuat dengan menampilkan fallback inisial sederhana
                 tbody.innerHTML += `
                     <tr>
                         <td>
@@ -322,12 +472,16 @@
         }
     }
 
+    function muatSemuaData() {
+        document.getElementById('input-cari').value = '';
+        renderTabel("SELECT foto, nomor, nama_siswa, kelas FROM siswa ORDER BY nomor ASC");
+    }
+
     function cariDataSiswa() {
         const keyword = document.getElementById('input-cari').value.trim();
-        const tbody = document.getElementById('tabel-siswa');
 
         if (keyword === "") {
-            tbody.innerHTML = `<tr><td colspan="4" class="empty-row">Silakan ketik nama siswa di kolom pencarian di atas.</td></tr>`;
+            muatSemuaData();
             return;
         }
         
