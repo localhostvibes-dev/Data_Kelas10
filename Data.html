@@ -293,24 +293,23 @@
             transform: scale(1) translateY(0);
         }
 
-        /* Container Gambar yang Dipaskan */
+        /* Container Gambar Tanpa Background Hitam (Pas Sesuai Foto) */
         .modal-img-container {
             width: 100%;
-            height: 300px;
-            background-color: #0f172a;
-            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            border: 2px solid var(--border);
             margin-bottom: 15px;
         }
 
         .modal-content img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* Memastikan gambar pas dan proporsional tanpa terpotong */
+            max-width: 100%;
+            max-height: 320px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 12px;
+            border: 2px solid var(--border);
             display: block;
         }
 
@@ -548,7 +547,7 @@
 
     function bukaModal(foto, nomor, nama, kelas) {
         const modalImg = document.getElementById('modalImg');
-        modalImg.src = ''; // Kosongkan dulu agar tidak menampilkan sisa gambar sebelumnya
+        modalImg.src = '';
         
         modalImg.src = foto;
         document.getElementById('modalNomor').innerText = nomor;
